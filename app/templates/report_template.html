@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Engineering Intelligence Report</title>
+</head>
+<body>
+
+    <!-- PAGE 1: COVER -->
+    <section class="cover-page">
+        <div class="hero-card">
+            <div class="brand-badge">AI Engineering Intelligence Platform</div>
+            <h1>Multi-Agent Code Analysis Intelligence Report</h1>
+            <p class="subtitle">
+                AI-powered engineering architecture review, maintainability analysis,
+                dependency intelligence, and technical recommendations.
+            </p>
+            <div class="project-meta">
+                <div class="meta-item">
+                    <span class="label">Project</span>
+                    <span class="value">{{ project_name }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Generated</span>
+                    <span class="value">{{ generated_at }}</span>
+                </div>
+                <div class="meta-item">
+                    <span class="label">Report Type</span>
+                    <span class="value">Engineering Intelligence Assessment</span>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PAGE 2: PROJECT OVERVIEW -->
+    <section class="page">
+        <h2>Project Overview</h2>
+        <div class="content-card">
+            {{ project_overview | safe }}
+        </div>
+    </section>
+
+    <!-- PAGE 3: EXECUTIVE DASHBOARD -->
+    <section class="page">
+        <h2>Executive Dashboard</h2>
+        <div class="metrics-grid">
+            <div class="metric-card">
+                <div class="metric-value">{{ metrics.files }}</div>
+                <div class="metric-label">Files Analyzed</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ metrics.functions }}</div>
+                <div class="metric-label">Functions</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ metrics.classes }}</div>
+                <div class="metric-label">Classes</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ metrics.loc }}</div>
+                <div class="metric-label">Lines of Code</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ metrics.external_dependencies }}</div>
+                <div class="metric-label">Dependencies</div>
+            </div>
+            <div class="metric-card">
+                <div class="metric-value">{{ metrics.hotspots }}</div>
+                <div class="metric-label">Complexity Hotspots</div>
+            </div>
+        </div>
+        <div class="health-card">
+            <h3>Project Health Score</h3>
+            <div class="health-score">{{ health_score }}/100</div>
+        </div>
+    </section>
+
+    <!-- PAGE 4: CODE DEEP DIVE (per-file explanation) -->
+    <section class="page">
+        <h2>Code Walkthrough</h2>
+        <p class="section-intro">
+            A detailed explanation of every file, its purpose, functions,
+            inputs, outputs, and role in the overall system.
+        </p>
+        <div class="content-card">
+            {{ file_deep_dive | safe }}
+        </div>
+    </section>
+
+<!-- PAGE 5: DEPENDENCY INTELLIGENCE -->
+<section class="page">
+    <h2>Dependency Intelligence</h2>
+
+    <!-- Risk summary strip -->
+    <div class="risk-grid">
+        <div class="risk-card success">
+            <h3>Circular Dependencies</h3>
+            <p>{{ architecture_metrics.circular_dependencies | length }}</p>
+        </div>
+        <div class="risk-card warning">
+            <h3>High Coupling Modules</h3>
+            <p>{{ architecture_metrics.high_coupling_modules | length }}</p>
+        </div>
+        <div class="risk-card danger">
+            <h3>Complexity Hotspots</h3>
+            <p>{{ architecture_metrics.complexity_hotspots | length }}</p>
+        </div>
+    </div>
+
+   <!-- File-level graph -->
+    <h3>File-Level Dependency Map</h3>
+    <p class="section-intro">
+        Shows which files import which other files across the project.
+    </p>
+    {% if dependency_graph_image %}
+    <div class="graph-card">
+        <img src="data:image/png;base64,{{ dependency_graph_image }}"
+             alt="File Dependency Graph"/>
+    </div>
+    {% else %}
+    <div class="empty-card">No file-level dependencies detected.</div>
+    {% endif %}
+
+    <!-- Function-level graph -->
+    <h3>Function-Level Call Map</h3>
+    <p class="section-intro">
+        Shows which specific functions call which other functions across
+        different files. Each color represents one source file.
+        Nodes are labelled as filename::function().
+    </p>
+    {% if func_graph_image %}
+    <div class="graph-card">
+        <img src="data:image/png;base64,{{ func_graph_image }}"
+             alt="Function Call Graph"/>
+    </div>
+    {% else %}
+    <div class="empty-card">No cross-file function calls detected.</div>
+    {% endif %}
+
+    <!-- Workflow flows — human-readable breakdown -->
+    <h3>Cross-File Workflow Breakdown</h3>
+    <p class="section-intro">
+        For each function that calls into other files, the full call chain
+        is shown below — what it calls, from which file, and in what order.
+    </p>
+
+    {% if workflow_flows %}
+    {% for flow in workflow_flows %}
+    <div cl ass="flow-card">
+
+        <!-- Header: source function -->
+        <div class="flow-header">
+            <span class="flow-file">{{ flow.source_file }}</span>
+            <span class="flow-arrow">→</span>
+            <span class="flow-func">{{ flow.caller_function }}()</span>
+            <span class="flow-badge">{{ flow.total_calls }} cross-file call{{ 's' if flow.total_calls > 1 else '' }}</span>
+        </div>
+
+        <!-- Call list -->
+        <div class="flow-calls">
+            {% for call in flow.calls %}
+            <div class="flow-call-row">
+                <span class="call-type-badge call-type-{{ call.call_type }}">
+                    {{ call.call_type }}
+                </span>
+                <span class="call-arrow">calls</span>
+                <span class="call-target-file">{{ call.callee_file }}</span>
+                <span class="call-separator">::</span>
+                <span class="call-target-func">{{ call.callee_function }}()</span>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Grouped summary by target file -->
+        <div class="flow-summary">
+            <span class="flow-summary-label">Uses from:</span>
+            {% for target_file, funcs in flow.calls_by_file.items() %}
+            <span class="flow-summary-item">
+                <strong>{{ target_file }}</strong>
+                → {{ funcs | join(", ") }}
+            </span>
+            {% endfor %}
+        </div>
+
+    </div>
+    {% endfor %}
+
+    {% else %}
+    <div class="empty-card">
+        No cross-file function calls detected in this project.
+    </div>
+    {% endif %}
+
+</section>
+
+    <!-- PAGE 6: ARCHITECTURE INTELLIGENCE -->
+    <section class="page">
+        <h2>Architecture Intelligence</h2>
+        <div class="content-card">
+            {{ architecture_review | safe }}
+        </div>
+    </section>
+
+    <!-- PAGE 7: TEST STRATEGY -->
+    <section class="page">
+        <h2>Test Strategy</h2>
+        <div class="content-card">
+            {{ testing_strategy | safe }}
+        </div>
+    </section>
+
+    <!-- PAGE 8: REFACTOR ROADMAP -->
+    <section class="page">
+        <h2>Refactor Roadmap</h2>
+        <div class="content-card">
+            {{ refactor_recommendations | safe }}
+        </div>
+    </section>
+
+    <!-- PAGE 9: CONCLUSION -->
+    <section class="page">
+        <h2>Conclusion</h2>
+        <div class="content-card">
+            {{ conclusion | safe }}
+        </div>
+    </section>
+
+</body>
+</html>
